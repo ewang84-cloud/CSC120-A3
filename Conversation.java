@@ -35,11 +35,22 @@ class Conversation implements ConversationRequirements {
     };
     this.wordMap = new HashMap<>();
       wordMap.put("I", "you");
+      wordMap.put("i", "you");
+
+      wordMap.put("Me", "you");
       wordMap.put("me", "you");
+
       wordMap.put("am", "are");
+      wordMap.put("Am", "are");
+
       wordMap.put("you", "I");
+      wordMap.put("You", "I");
+
       wordMap.put("my", "your");
+      wordMap.put("My", "your");
+
       wordMap.put("your", "my");
+      wordMap.put("Your", "my");
   }
 
 
@@ -76,12 +87,23 @@ class Conversation implements ConversationRequirements {
     
     for (int i = 0; i < words.length; i++) {
       String word = words[i];
-      if (wordMap.containsKey(word)) {
-        result.append(wordMap.get(word));
+
+      String punctuation ="";
+      String cleanword = word;
+      
+      while(cleanword.length()>0 && !Character.isLetterOrDigit(cleanword.charAt(cleanword.length()-1))){
+        punctuation = cleanword.charAt(cleanword.length()-1)+punctuation;
+        cleanword = cleanword.substring(0, cleanword.length()-1);
+      }
+
+      if (wordMap.containsKey(cleanword) && cleanword.length() > 0) {
+        result.append(wordMap.get(cleanword));
       }
       else {
-        result.append(word);
+        result.append(cleanword);
       }
+
+      result.append(punctuation);
 
       if (i < words.length - 1) {
         result.append(" ");
@@ -98,9 +120,18 @@ class Conversation implements ConversationRequirements {
    * @return whole converted response
    */
   public String TargetResponse(String inputString) {
-    String converted = convertWords(inputString);
+    String cleanInput = inputString.trim();
+    while (cleanInput.length() > 0 && !Character.isLetterOrDigit(cleanInput.charAt(cleanInput.length()-1))) {
+        cleanInput = cleanInput.substring(0, cleanInput.length()-1);
+    }
+    
+    String converted = convertWords(cleanInput);
     return converted + "?";
-  } 
+  }
+
+
+
+
 
 
   /**
@@ -112,6 +143,8 @@ class Conversation implements ConversationRequirements {
       System.out.println(Beginning);
       Transcript.add(Beginning);
     } 
+
+    RoundNum();
 
     while (NumFinished < NumIntended){
       String userInput = scanner.nextLine();
@@ -151,13 +184,15 @@ class Conversation implements ConversationRequirements {
    */
   public String respond(String inputString) {
     boolean shouldMirror = false;
-  for (String key : wordMap.keySet()) {
-    if (inputString.contains(key)) {
-      shouldMirror = true;
-      break;
+    for (String key : wordMap.keySet()){
+      String pattern = "\\b" + key + "\\b";
+
+      if(inputString.matches(".*"+pattern+".*")){
+        shouldMirror=true;
+        break;
+      }
     }
-    }
-    
+
   if (shouldMirror) {
     return TargetResponse(inputString);
   }
@@ -166,10 +201,10 @@ class Conversation implements ConversationRequirements {
   }
   }
 
+
   public static void main(String[] arguments) {
 
     Conversation myConversation = new Conversation();
-    myConversation.RoundNum();
     myConversation.chat();
     myConversation.printTranscript();
 
